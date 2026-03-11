@@ -1,0 +1,16 @@
+{
+	"dependencies": {
+		"event": {
+			"github": "miyako/event",
+			"version": "latest"
+		},
+		"4D AIKit": {
+			"github": "4d/4D-AIKit",
+			"version": "4d"
+		},
+		"CTranslate2": {
+			"github": "miyako/CTranslate2",
+			"version": "latest"
+		}
+	}
+}
