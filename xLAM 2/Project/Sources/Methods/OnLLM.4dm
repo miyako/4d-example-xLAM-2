@@ -1,4 +1,4 @@
-//%attributes = {}
+//%attributes = {"invisible":true,"preemptive":"incapable"}
 var $LLM : cs:C1710.LLM
 $LLM:=cs:C1710.LLM.me
 

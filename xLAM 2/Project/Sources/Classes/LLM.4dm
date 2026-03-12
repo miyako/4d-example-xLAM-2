@@ -5,7 +5,8 @@ property formula : 4D:C1709.Function
 
 shared singleton Class constructor($folder : 4D:C1709.Folder; \
 $path : Text; $URL : Text; \
-$window : Integer; $formula : 4D:C1709.Function)
+$batch_size : Integer; $batches : Integer; \
+$threads : Integer; $window : Integer; $formula : 4D:C1709.Function)
 	
 	This:C1470.window:=$window
 	This:C1470.formula:=$formula
@@ -21,19 +22,43 @@ $window : Integer; $formula : 4D:C1709.Function)
 	This:C1470.files:=New shared object:C1526
 	This:C1470.available:=False:C215
 	
+	var $logFile : 4D:C1709.File
+	$logFile:=$folder.file("llama.log")
+	$folder.create()
+	If (Not:C34($logFile.exists))
+		$logFile.setContent(4D:C1709.Blob.new())
+	End if 
+	
+	var $cores : Integer
+	$cores:=System info:C1571.cores\2
+	
 	var $port : Integer
 	$port:=8080
 	
+	var $gbnf : 4D:C1709.File
+	$gbnf:=File:C1566("/RESOURCES/object.gbnf")
+	
 	var $options : Object
-	$options:={}
+	$options:={\
+		log_file: $logFile; \
+		ctx_size: $batch_size*$batches*$threads; \
+		batch_size: $batch_size*$batches; \
+		parallel: $cores; \
+		threads: $threads; \
+		threads_batch: $threads; \
+		threads_http: $threads; \
+		log_disable: False:C215; \
+		n_gpu_layers: -1\
+		; grammar_file: $gbnf}
 	
 	var $huggingface : cs:C1710.event.huggingface
-	$huggingface:=cs:C1710.event.huggingface.new($folder; $URL; $path; "chat")
+	$huggingface:=cs:C1710.event.huggingface.new($folder; $URL; $path)
+	
 	var $huggingfaces : cs:C1710.event.huggingfaces
 	$huggingfaces:=cs:C1710.event.huggingfaces.new([$huggingface])
 	
-	var $CTranslate2 : cs:C1710.CTranslate2.CTranslate2
-	$CTranslate2:=cs:C1710.CTranslate2.CTranslate2.new($port; $huggingfaces; $folder.parent; $options; $event)
+	var $llama : cs:C1710.llama.llama
+	$llama:=cs:C1710.llama.llama.new($port; $huggingfaces; $folder; $options; $event)
 	
 shared Function onTerminate($process : Object)
 	

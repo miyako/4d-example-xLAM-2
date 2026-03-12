@@ -4,7 +4,12 @@ property tool_calls : Collection
 
 Class constructor
 	
-Function step1($ChatCompletionsResult : cs:C1710.AIKit.OpenAIChatCompletionsResult)
+Function response($ChatCompletionsResult : cs:C1710.AIKit.OpenAIChatCompletionsResult)
+	
+	If ($ChatCompletionsResult.errors#Null:C1517) && ($ChatCompletionsResult.errors.length#0)
+		Form:C1466.text:=$ChatCompletionsResult.errors.extract("message").join("\r")
+		return 
+	End if 
 	
 	If ($ChatCompletionsResult.success)
 		If ($ChatCompletionsResult.terminated)
@@ -16,13 +21,13 @@ Function step1($ChatCompletionsResult : cs:C1710.AIKit.OpenAIChatCompletionsResu
 			
 			Case of 
 				: ($ChatCompletionsResult.choice.finish_reason="length")
-					
+					Form:C1466.text:="too many tokens!"
 				: ($ChatCompletionsResult.choice.finish_reason="stop")
 					
 				: ($ChatCompletionsResult.choice.finish_reason="tool_calls")
 					
 					For each ($tool_call; Form:C1466.tool_calls)
-						$arguments:=JSON Parse:C1218($tool_call.function.arguments)
+						$arguments:=Try(JSON Parse:C1218($tool_call.function.arguments))
 						$tool_call.content:=$Tools[$tool_call.function.name].call($OpenAI; $arguments)
 						
 						$messages.push({\
@@ -36,11 +41,11 @@ Function step1($ChatCompletionsResult : cs:C1710.AIKit.OpenAIChatCompletionsResu
 					$ChatCompletionsParameters:=cs:C1710.AIKit.OpenAIChatCompletionsParameters.new()
 					
 					//parameters for tool calling
-					$ChatCompletionsParameters.temperature:=0.1
+					$ChatCompletionsParameters.temperature:=-1
 					$ChatCompletionsParameters.tool_choice:="auto"
 					$ChatCompletionsParameters.tools:=$Tools.tools
 					$ChatCompletionsParameters.stream:=True:C214
-					$ChatCompletionsParameters.formula:=Form:C1466.step1
+					$ChatCompletionsParameters.formula:=Form:C1466.response
 					
 					Form:C1466.text:=""
 					Form:C1466.reasoning_content:=""
@@ -87,18 +92,18 @@ Function demo()
 	
 	var $messages : Collection
 	$messages:=[]
-	$messages.push({role: "system"; content: "Use them to answer the user's questions. All tools apply to the current system and location. "})
-	$messages.push({role: "user"; content: "What day and time is it? Also who is the current user?"})
+	//$messages.push({role: "system"; content: "The tools return information about about the current OS. Use them to statisfy the user's requests."})
+	$messages.push({role: "user"; content: "Tell me about the curent machine name."})
 	
 	var $ChatCompletionsParameters : cs:C1710.AIKit.OpenAIChatCompletionsParameters
 	$ChatCompletionsParameters:=cs:C1710.AIKit.OpenAIChatCompletionsParameters.new()
 	
 	//parameters for tool calling
-	$ChatCompletionsParameters.temperature:=0.1
+	$ChatCompletionsParameters.temperature:=-1
 	$ChatCompletionsParameters.tool_choice:="auto"
 	$ChatCompletionsParameters.tools:=$Tools.tools
 	$ChatCompletionsParameters.stream:=True:C214
-	$ChatCompletionsParameters.formula:=Form:C1466.step1
+	$ChatCompletionsParameters.formula:=Form:C1466.response
 	
 	Form:C1466.text:=""
 	Form:C1466.reasoning_content:=""
