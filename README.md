@@ -1,2 +1,1 @@
-# 4d-example-xLAM-2
-xLAM 2 for CT2
+## [Salesforce/xLAM-2-3b-fc-r](https://huggingface.co/Salesforce/xLAM-2-3b-fc-r)
