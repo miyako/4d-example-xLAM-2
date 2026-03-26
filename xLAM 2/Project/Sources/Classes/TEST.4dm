@@ -37,6 +37,8 @@ Function response($ChatCompletionsResult : cs:C1710.AIKit.OpenAIChatCompletionsR
 							content: JSON Stringify:C1217($tool_call.content)})
 					End for each 
 					
+					$messages.push({role: "user"; content: "In conclusion what say you."})
+					
 					var $ChatCompletionsParameters : cs:C1710.AIKit.OpenAIChatCompletionsParameters
 					$ChatCompletionsParameters:=cs:C1710.AIKit.OpenAIChatCompletionsParameters.new()
 					
